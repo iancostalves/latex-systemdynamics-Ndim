@@ -68,3 +68,30 @@ scale=0.5, inner ysep=1em, fill=white]
 \draw[sdarrow, #3] ({#1}) to ({#2});
 }
 }
+
+% Draws an N-dimensional stock using 3 stacked boxes and a dimension label.
+% The shadow boxes give a visual cue that the stock is indexed over a dimension
+% (e.g. pathways p, technologies t, age cohorts a).
+%
+% Usage:
+%   \ndstock[tikz options]{name}{label}{dimtype}{dimpos}
+%
+%   tikz options  – optional TikZ placement/style options passed to all boxes
+%                   (e.g. below=7em of other, xshift=1em)
+%   name          – TikZ node name for the main (front) box; the two shadow
+%                   boxes are named <name>_s1 and <name>_s2 and the dimension
+%                   label node is named <name>_dim
+%   label         – text shown inside the main box
+%   dimtype       – dimension identifier rendered in the extra entry,
+%                   e.g. $p$ for pathways, $t$ for technologies
+%   dimpos        – where to place the extra dimension entry: above or below
+\newcommand{\ndstock}[5][]{%
+  \node[stock, #1, xshift=6pt, yshift=6pt] (#2_s2) {};%
+  \node[stock, #1, xshift=3pt, yshift=3pt] (#2_s1) {};%
+  \node[stock, #1] (#2) {#3};%
+  \ifthenelse{\equal{#5}{above}}{%
+    \node[above=0.3em of #2_s2, font=\small\itshape] (#2_dim) {#4};%
+  }{%
+    \node[below=0.3em of #2, font=\small\itshape] (#2_dim) {#4};%
+  }%
+}
