@@ -11,6 +11,13 @@
 \usetikzlibrary{positioning}
 \pgfplotsset{compat=newest} 
 
+% Layers for N-dimensional stocks: shadow elements are drawn behind the main
+% (front) elements so that back boxes and flows never overlap on top of
+% front ones.
+\pgfdeclarelayer{sdback}
+\pgfdeclarelayer{sdmid}
+\pgfsetlayers{sdback,sdmid,main}
+
 
 \tikzstyle{stock} = [rectangle, minimum width=2cm, minimum
 height=0.5cm,text centered, draw=black, fill=black!01, align=center, inner
@@ -19,13 +26,13 @@ ysep=1em] \tikzstyle{sdvariable} = []
 scale=0.5, inner ysep=1em, fill=white] 
 \tikzstyle{arrow} = [thick	,->,>=stealth]
 % Styles for the hourglass             
-\tikzstyle{triangle} = [draw=black, regular polygon, regular
+\tikzstyle{triangle} = [draw=black, fill=white, regular polygon, regular
     polygon sides=3 ,scale=0.6]
 \tikzstyle{border rotated} = [shape border rotate=180]
 % Double arrow credits to Dominik Haumann
 % http://www.texample.net/tikz/examples/double-arrows/
 \tikzstyle{flow} = [thick, decoration={markings,mark=at position
-   1 with {\arrow[semithick]{open triangle 60}}},
+   1 with {\arrow[semithick, fill=white]{open triangle 60}}},
    double distance=1.4pt, shorten >= 5.5pt,
    preaction = {decorate},
    postaction = {draw,line width=1.4pt, white,shorten >= 4.5pt}]
@@ -67,4 +74,111 @@ scale=0.5, inner ysep=1em, fill=white]
 }{
 \draw[sdarrow, #3] ({#1}) to ({#2});
 }
+}
+
+% Draws an arrow targeting an N-dimensional stock.
+% Uses a larger shorten distance (12pt) so the shadow boxes behind the
+% front box do not peek out behind the arrow tip.
+\tikzstyle{ndsdarrow} = [->, shorten >=12pt]
+\newcommand{\ndsdarrow}[3] {
+\ifthenelse{\equal{#3}{}}{
+\draw[ndsdarrow] ({#1}) to ({#2});
+}{
+\draw[ndsdarrow, #3] ({#1}) to ({#2});
+}
+}
+
+% Draws an N-dimensional stock using 3 stacked boxes and a dimension label.
+% The shadow boxes give a visual cue that the stock is indexed over a dimension
+% (e.g. pathways p, technologies t, age cohorts a).
+%
+% Usage:
+%   \ndstock[tikz options]{name}{label}{dimtype}{dimpos}
+%
+%   tikz options  – optional TikZ placement/style options passed to all boxes
+%                   (e.g. below=7em of other, xshift=1em)
+%   name          – TikZ node name for the main (front) box; the two shadow
+%                   boxes are named <name>_s1 and <name>_s2 and the dimension
+%                   label node is named <name>_dim
+%   label         – text shown inside the main box
+%   dimtype       – dimension identifier rendered in the extra entry,
+%                   e.g. $p$ for pathways, $t$ for technologies
+%   dimpos        – where to place the extra dimension entry: above or below
+\newcommand{\ndstock}[5][]{%
+  \begin{pgfonlayer}{sdback}%
+    \node[stock, #1, xshift=10pt, yshift=10pt] (#2_s2) {\phantom{#3}};%
+  \end{pgfonlayer}%
+  \begin{pgfonlayer}{sdmid}%
+    \node[stock, #1, xshift=5pt, yshift=5pt] (#2_s1) {\phantom{#3}};%
+  \end{pgfonlayer}%
+  \node[stock, #1] (#2) {#3};%
+  \ifthenelse{\equal{#5}{above}}{%
+    \node[above=0.3em of #2_s2, font=\small\itshape] (#2_dim) {#4};%
+  }{%
+    \node[below=0.3em of #2, font=\small\itshape] (#2_dim) {#4};%
+  }%
+}
+
+% Draws a stacked ingoing flow for an N-dimensional stock.
+% Draws 3 offset flows (matching the 3 stacked boxes) with clouds and
+% hourglasses.  Only the front flow carries the label and named nodes
+% (in_<name>_up, in_<name>_down, in_<name>_down_nolabel) so that
+% \sdarrow works exactly as with \flowIn.
+%
+% Usage: \ndflowIn{name}{flow label}
+\newcommand{\ndflowIn}[2] {
+% Back shadow flow (connected to _s2)
+\begin{pgfonlayer}{sdback}
+\node [sdcloud, left=5em of #1_s2] (in_cloud_#1_s2) {};
+\draw[flow] (in_cloud_#1_s2) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(#1_s2);
+\end{pgfonlayer}
+% Middle shadow flow (connected to _s1)
+\begin{pgfonlayer}{sdmid}
+\node [sdcloud, left=5em of #1_s1] (in_cloud_#1_s1) {};
+\draw[flow] (in_cloud_#1_s1) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(#1_s1);
+\end{pgfonlayer}
+% Front main flow (with named nodes, same interface as \flowIn)
+\node [sdcloud, left=5em of #1] (in_cloud_#1) {};
+\draw[flow] (in_cloud_#1) to node[below=0.3cm] (in_#1_down) {{#2}}
+						node[thin, triangle, border rotated, above] (in_#1_up) {}
+						node[thin, triangle, below] (in_#1_down_nolabel) {}
+						({#1});
+}
+
+% Draws a stacked outgoing flow for an N-dimensional stock.
+% Draws 3 offset flows (matching the 3 stacked boxes) with clouds and
+% hourglasses.  Only the front flow carries the label and named nodes
+% (out_<name>_up, out_<name>_down, out_<name>_down_nolabel) so that
+% \sdarrow works exactly as with \flowOut.
+%
+% Usage: \ndflowOut{name}{flow label}
+\newcommand{\ndflowOut}[2] {
+% Back shadow flow (connected to _s2)
+\begin{pgfonlayer}{sdback}
+\node [sdcloud, right=5em of #1_s2] (out_cloud_#1_s2) {};
+\draw[flow] (#1_s2) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(out_cloud_#1_s2);
+\end{pgfonlayer}
+% Middle shadow flow (connected to _s1)
+\begin{pgfonlayer}{sdmid}
+\node [sdcloud, right=5em of #1_s1] (out_cloud_#1_s1) {};
+\draw[flow] (#1_s1) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(out_cloud_#1_s1);
+\end{pgfonlayer}
+% Front main flow (with named nodes, same interface as \flowOut)
+\node [sdcloud, right=5em of #1] (out_cloud_#1) {};
+\draw[flow] ({#1}) to node[below=0.3cm] (out_#1_down) {{#2}}
+						node[thin, triangle, border rotated, above] (out_#1_up) {}
+						node[thin, triangle, below] (out_#1_down_nolabel) {}
+						(out_cloud_#1);
 }

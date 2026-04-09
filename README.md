@@ -29,6 +29,80 @@ inside the [], i.e.
 
 ````
 
+### Drawing N-Dimensional Stocks
+
+N-dimensional stocks represent quantities that are indexed over a discrete dimension
+such as **pathways** (_p_), **technologies** (_t_), **age cohorts** (_a_), or
+**layers**.  They are drawn as three stacked boxes with a small dimension
+identifier placed either above or below the stack.
+
+````
+\ndstock[tikz-options]{name}{label}{dimtype}{dimpos}
+````
+
+| Argument      | Description |
+|---------------|-------------|
+| `tikz-options`| *(optional)* TikZ placement/style options, e.g. `below=7em of other` |
+| `name`        | TikZ node name for the main (front) box |
+| `label`       | Text shown inside the main box |
+| `dimtype`     | Dimension identifier rendered in the extra entry, e.g. `$p$` for pathways, `$t$` for technologies |
+| `dimpos`      | Where the dimension entry is placed: `above` or `below` |
+
+The command creates the following named nodes that can be referenced by arrows
+and flow commands:
+
+- _name_ — the main (front) box
+- _name\_s1_, _name\_s2_ — the two shadow boxes behind the main box
+- _name\_dim_ — the dimension label node
+
+Since the main box is a standard `stock` node, `\sdarrow` works with
+N-dimensional stocks exactly as it does with ordinary stocks.  For arrows
+that **arrive at** an N-dimensional stock, use `\ndsdarrow` instead — it
+increases the gap between the arrowhead and the stock so that shadow boxes
+do not peek out behind the arrow tip:
+
+````
+\ndsdarrow{fromNode}{toNode}{bend left=5}
+````
+
+The shadow boxes and flows are drawn on dedicated TikZ layers (`sdback`,
+`sdmid`) so that they always render behind the front elements regardless
+of command order.
+
+#### N-Dimensional Flows
+
+To draw **stacked flows** that visually match the stacked boxes, use
+`\ndflowIn` and `\ndflowOut` instead of `\flowIn` / `\flowOut`:
+
+````
+\ndflowIn{stockname}{flowlabel}
+\ndflowOut{stockname}{flowlabel}
+````
+
+These draw three offset cloud-and-hourglass flows (one per stacked box).
+The front flow carries the label and the same named intermediate nodes as
+the regular flow commands (_in\_stock\_up_, _in\_stock\_down\_nolabel_, etc.),
+so `\sdarrow` references work without changes.
+
+You can also use the regular `\flowIn` / `\flowOut` with an N-dimensional
+stock if you only need a single flow line.
+
+**Examples:**
+
+````latex
+% Stock indexed over pathways (p), dimension label shown below
+\ndstock{energy_p}{Energy}{$p$}{below}
+
+% Stock indexed over technologies (t), positioned relative to another node,
+% dimension label shown above
+\ndstock[below=7em of energy]{energy_t}{Energy}{$t$}{above}
+
+% Add stacked flows and arrows
+\ndflowIn{energy_p}{}
+\ndflowOut{energy_p}{}
+\ndsdarrow{energy}{energy_p}{}
+````
+
 ### Drawing Nodes
 To add positive or negative flows with the label _flowlabel_ to the node _stockname_, use the following commands:
 ````
@@ -64,7 +138,9 @@ To avoid arrows that overlap with the node labels, the flows have additional poi
 - _out\_stock_up_ A: node above the outcoming flows hourglass
 
 
-## Example Diagram
+## Example Diagrams
+
+### Predator-Prey (Standard Stocks)
 The following code draws a simple two-state diagram.
 
 ````latex
@@ -100,4 +176,48 @@ The following code draws a simple two-state diagram.
 
 The output will look as follows:
 <img alt="Predator Prey model" src="predator_prey.png" style="width: 20em;" />
+
+### N-Dimensional Stocks Example
+
+The following code (see `ndim_example.tex`) demonstrates stocks indexed over
+different discrete dimensions.  The three stacked boxes give an immediate
+visual cue that the quantity is differentiated by a dimension, and the small
+italic label (placed above or below the stack) identifies that dimension.
+
+````latex
+\documentclass{standalone}
+\pagestyle{empty}
+\usepackage{systemdynamics}
+
+\begin{document}
+\begin{tikzpicture}
+
+% Ordinary single-dimension stock
+\node (energy) [stock] {Energy};
+\flowIn{energy}{}
+\flowOut{energy}{}
+
+% Stock indexed over pathways (p), label shown below
+\ndstock[below=8em of energy]{energy_p}{Energy}{$p$}{below}
+\ndflowIn{energy_p}{}
+\ndflowOut{energy_p}{}
+\ndsdarrow{energy}{energy_p}{}
+
+% Stock indexed over technologies (t), label shown above
+\ndstock[right=14em of energy_p]{energy_t}{Energy}{$t$}{above}
+\ndflowIn{energy_t}{}
+\ndflowOut{energy_t}{}
+
+% Stock indexed over layers (a), label shown below
+\ndstock[right=14em of energy]{cap}{Capacity}{$a$}{below}
+\ndflowIn{cap}{}
+\ndflowOut{cap}{}
+\ndsdarrow{cap}{energy_t}{bend right=20}
+
+\end{tikzpicture}
+\end{document}
+````
+
+The output will look as follows:
+<img alt="N-dimensional stocks example" src="ndim_example.png" style="width: 40em;" />
 
