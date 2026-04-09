@@ -11,6 +11,13 @@
 \usetikzlibrary{positioning}
 \pgfplotsset{compat=newest} 
 
+% Layers for N-dimensional stocks: shadow elements are drawn behind the main
+% (front) elements so that back boxes and flows never overlap on top of
+% front ones.
+\pgfdeclarelayer{sdback}
+\pgfdeclarelayer{sdmid}
+\pgfsetlayers{sdback,sdmid,main}
+
 
 \tikzstyle{stock} = [rectangle, minimum width=2cm, minimum
 height=0.5cm,text centered, draw=black, fill=black!01, align=center, inner
@@ -69,6 +76,18 @@ scale=0.5, inner ysep=1em, fill=white]
 }
 }
 
+% Draws an arrow targeting an N-dimensional stock.
+% Uses a larger shorten distance (8pt) so the shadow boxes behind the
+% front box do not peek out behind the arrow tip.
+\tikzstyle{ndsdarrow} = [->, shorten >=8pt]
+\newcommand{\ndsdarrow}[3] {
+\ifthenelse{\equal{#3}{}}{
+\draw[ndsdarrow] ({#1}) to ({#2});
+}{
+\draw[ndsdarrow, #3] ({#1}) to ({#2});
+}
+}
+
 % Draws an N-dimensional stock using 3 stacked boxes and a dimension label.
 % The shadow boxes give a visual cue that the stock is indexed over a dimension
 % (e.g. pathways p, technologies t, age cohorts a).
@@ -86,8 +105,12 @@ scale=0.5, inner ysep=1em, fill=white]
 %                   e.g. $p$ for pathways, $t$ for technologies
 %   dimpos        – where to place the extra dimension entry: above or below
 \newcommand{\ndstock}[5][]{%
-  \node[stock, #1, xshift=6pt, yshift=6pt] (#2_s2) {\phantom{#3}};%
-  \node[stock, #1, xshift=3pt, yshift=3pt] (#2_s1) {\phantom{#3}};%
+  \begin{pgfonlayer}{sdback}%
+    \node[stock, #1, xshift=6pt, yshift=6pt] (#2_s2) {\phantom{#3}};%
+  \end{pgfonlayer}%
+  \begin{pgfonlayer}{sdmid}%
+    \node[stock, #1, xshift=3pt, yshift=3pt] (#2_s1) {\phantom{#3}};%
+  \end{pgfonlayer}%
   \node[stock, #1] (#2) {#3};%
   \ifthenelse{\equal{#5}{above}}{%
     \node[above=0.3em of #2_s2, font=\small\itshape] (#2_dim) {#4};%
@@ -105,17 +128,21 @@ scale=0.5, inner ysep=1em, fill=white]
 % Usage: \ndflowIn{name}{flow label}
 \newcommand{\ndflowIn}[2] {
 % Back shadow flow (connected to _s2)
+\begin{pgfonlayer}{sdback}
 \node [sdcloud, left=5em of #1_s2] (in_cloud_#1_s2) {};
 \draw[flow] (in_cloud_#1_s2) to
 						node[thin, triangle, border rotated, above] {}
 						node[thin, triangle, below] {}
 						(#1_s2);
+\end{pgfonlayer}
 % Middle shadow flow (connected to _s1)
+\begin{pgfonlayer}{sdmid}
 \node [sdcloud, left=5em of #1_s1] (in_cloud_#1_s1) {};
 \draw[flow] (in_cloud_#1_s1) to
 						node[thin, triangle, border rotated, above] {}
 						node[thin, triangle, below] {}
 						(#1_s1);
+\end{pgfonlayer}
 % Front main flow (with named nodes, same interface as \flowIn)
 \node [sdcloud, left=5em of #1] (in_cloud_#1) {};
 \draw[flow] (in_cloud_#1) to node[below=0.3cm] (in_#1_down) {{#2}}
@@ -133,17 +160,21 @@ scale=0.5, inner ysep=1em, fill=white]
 % Usage: \ndflowOut{name}{flow label}
 \newcommand{\ndflowOut}[2] {
 % Back shadow flow (connected to _s2)
+\begin{pgfonlayer}{sdback}
 \node [sdcloud, right=5em of #1_s2] (out_cloud_#1_s2) {};
 \draw[flow] (#1_s2) to
 						node[thin, triangle, border rotated, above] {}
 						node[thin, triangle, below] {}
 						(out_cloud_#1_s2);
+\end{pgfonlayer}
 % Middle shadow flow (connected to _s1)
+\begin{pgfonlayer}{sdmid}
 \node [sdcloud, right=5em of #1_s1] (out_cloud_#1_s1) {};
 \draw[flow] (#1_s1) to
 						node[thin, triangle, border rotated, above] {}
 						node[thin, triangle, below] {}
 						(out_cloud_#1_s1);
+\end{pgfonlayer}
 % Front main flow (with named nodes, same interface as \flowOut)
 \node [sdcloud, right=5em of #1] (out_cloud_#1) {};
 \draw[flow] ({#1}) to node[below=0.3cm] (out_#1_down) {{#2}}

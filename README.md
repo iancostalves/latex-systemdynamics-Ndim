@@ -56,7 +56,18 @@ and flow commands:
 - _name\_dim_ — the dimension label node
 
 Since the main box is a standard `stock` node, `\sdarrow` works with
-N-dimensional stocks exactly as it does with ordinary stocks.
+N-dimensional stocks exactly as it does with ordinary stocks.  For arrows
+that **arrive at** an N-dimensional stock, use `\ndsdarrow` instead — it
+increases the gap between the arrowhead and the stock so that shadow boxes
+do not peek out behind the arrow tip:
+
+````
+\ndsdarrow{fromNode}{toNode}{bend left=5}
+````
+
+The shadow boxes and flows are drawn on dedicated TikZ layers (`sdback`,
+`sdmid`) so that they always render behind the front elements regardless
+of command order.
 
 #### N-Dimensional Flows
 
@@ -89,7 +100,7 @@ stock if you only need a single flow line.
 % Add stacked flows and arrows
 \ndflowIn{energy_p}{}
 \ndflowOut{energy_p}{}
-\sdarrow{energy}{energy_p}{}
+\ndsdarrow{energy}{energy_p}{}
 ````
 
 ### Drawing Nodes
@@ -190,7 +201,7 @@ italic label (placed above or below the stack) identifies that dimension.
 \ndstock[below=8em of energy]{energy_p}{Energy}{$p$}{below}
 \ndflowIn{energy_p}{}
 \ndflowOut{energy_p}{}
-\sdarrow{energy}{energy_p}{}
+\ndsdarrow{energy}{energy_p}{}
 
 % Stock indexed over technologies (t), label shown above
 \ndstock[right=14em of energy_p]{energy_t}{Energy}{$t$}{above}
@@ -201,7 +212,7 @@ italic label (placed above or below the stack) identifies that dimension.
 \ndstock[right=14em of energy]{cap}{Capacity}{$a$}{below}
 \ndflowIn{cap}{}
 \ndflowOut{cap}{}
-\sdarrow{cap}{energy_t}{bend right=20}
+\ndsdarrow{cap}{energy_t}{bend right=20}
 
 \end{tikzpicture}
 \end{document}

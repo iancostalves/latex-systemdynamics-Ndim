@@ -20,7 +20,7 @@
 \ndflowIn{energy_p}{}
 \ndflowOut{energy_p}{}
 % Arrows can reference the main node as usual
-\sdarrow{energy}{energy_p}{}
+\ndsdarrow{energy}{energy_p}{}
 
 % ── Stock indexed over technologies (t), label shown above ───────────────────
 \ndstock[right=14em of energy_p]{energy_t}{Energy}{$t$}{above}
@@ -31,7 +31,7 @@
 \ndstock[right=14em of energy]{cap}{Capacity}{$a$}{below}
 \ndflowIn{cap}{}
 \ndflowOut{cap}{}
-\sdarrow{cap}{energy_t}{bend right=20}
+\ndsdarrow{cap}{energy_t}{bend right=20}
 
 \end{tikzpicture}
 \end{document}
