@@ -17,20 +17,20 @@
 % ── Stock indexed over pathways (p), label shown below ────────────────────────
 % Usage: \ndstock[tikz-options]{name}{label}{dimtype}{dimpos}
 \ndstock[below=8em of energy]{energy_p}{Energy}{$p$}{below}
-\flowIn{energy_p}{}
-\flowOut{energy_p}{}
+\ndflowIn{energy_p}{}
+\ndflowOut{energy_p}{}
 % Arrows can reference the main node as usual
 \sdarrow{energy}{energy_p}{}
 
 % ── Stock indexed over technologies (t), label shown above ───────────────────
 \ndstock[right=14em of energy_p]{energy_t}{Energy}{$t$}{above}
-\flowIn{energy_t}{}
-\flowOut{energy_t}{}
+\ndflowIn{energy_t}{}
+\ndflowOut{energy_t}{}
 
 % ── Stock indexed over layers (a), label shown below ─────────────────────────
 \ndstock[right=14em of energy]{cap}{Capacity}{$a$}{below}
-\flowIn{cap}{}
-\flowOut{cap}{}
+\ndflowIn{cap}{}
+\ndflowOut{cap}{}
 \sdarrow{cap}{energy_t}{bend right=20}
 
 \end{tikzpicture}

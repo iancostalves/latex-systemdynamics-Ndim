@@ -55,9 +55,26 @@ and flow commands:
 - _name\_s1_, _name\_s2_ — the two shadow boxes behind the main box
 - _name\_dim_ — the dimension label node
 
-Since the main box is a standard `stock` node, all the usual flow commands
-(`\flowIn`, `\flowOut`) and arrows (`\sdarrow`) work with N-dimensional stocks
-exactly as they do with ordinary stocks.
+Since the main box is a standard `stock` node, `\sdarrow` works with
+N-dimensional stocks exactly as it does with ordinary stocks.
+
+#### N-Dimensional Flows
+
+To draw **stacked flows** that visually match the stacked boxes, use
+`\ndflowIn` and `\ndflowOut` instead of `\flowIn` / `\flowOut`:
+
+````
+\ndflowIn{stockname}{flowlabel}
+\ndflowOut{stockname}{flowlabel}
+````
+
+These draw three offset cloud-and-hourglass flows (one per stacked box).
+The front flow carries the label and the same named intermediate nodes as
+the regular flow commands (_in\_stock\_up_, _in\_stock\_down\_nolabel_, etc.),
+so `\sdarrow` references work without changes.
+
+You can also use the regular `\flowIn` / `\flowOut` with an N-dimensional
+stock if you only need a single flow line.
 
 **Examples:**
 
@@ -69,9 +86,9 @@ exactly as they do with ordinary stocks.
 % dimension label shown above
 \ndstock[below=7em of energy]{energy_t}{Energy}{$t$}{above}
 
-% Add flows and arrows exactly as for a normal stock
-\flowIn{energy_p}{}
-\flowOut{energy_p}{}
+% Add stacked flows and arrows
+\ndflowIn{energy_p}{}
+\ndflowOut{energy_p}{}
 \sdarrow{energy}{energy_p}{}
 ````
 
@@ -171,19 +188,19 @@ italic label (placed above or below the stack) identifies that dimension.
 
 % Stock indexed over pathways (p), label shown below
 \ndstock[below=8em of energy]{energy_p}{Energy}{$p$}{below}
-\flowIn{energy_p}{}
-\flowOut{energy_p}{}
+\ndflowIn{energy_p}{}
+\ndflowOut{energy_p}{}
 \sdarrow{energy}{energy_p}{}
 
 % Stock indexed over technologies (t), label shown above
 \ndstock[right=14em of energy_p]{energy_t}{Energy}{$t$}{above}
-\flowIn{energy_t}{}
-\flowOut{energy_t}{}
+\ndflowIn{energy_t}{}
+\ndflowOut{energy_t}{}
 
 % Stock indexed over layers (a), label shown below
 \ndstock[right=14em of energy]{cap}{Capacity}{$a$}{below}
-\flowIn{cap}{}
-\flowOut{cap}{}
+\ndflowIn{cap}{}
+\ndflowOut{cap}{}
 \sdarrow{cap}{energy_t}{bend right=20}
 
 \end{tikzpicture}

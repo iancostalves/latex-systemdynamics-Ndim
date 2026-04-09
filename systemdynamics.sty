@@ -86,12 +86,68 @@ scale=0.5, inner ysep=1em, fill=white]
 %                   e.g. $p$ for pathways, $t$ for technologies
 %   dimpos        – where to place the extra dimension entry: above or below
 \newcommand{\ndstock}[5][]{%
-  \node[stock, #1, xshift=6pt, yshift=6pt] (#2_s2) {};%
-  \node[stock, #1, xshift=3pt, yshift=3pt] (#2_s1) {};%
+  \node[stock, #1, xshift=6pt, yshift=6pt] (#2_s2) {\phantom{#3}};%
+  \node[stock, #1, xshift=3pt, yshift=3pt] (#2_s1) {\phantom{#3}};%
   \node[stock, #1] (#2) {#3};%
   \ifthenelse{\equal{#5}{above}}{%
     \node[above=0.3em of #2_s2, font=\small\itshape] (#2_dim) {#4};%
   }{%
     \node[below=0.3em of #2, font=\small\itshape] (#2_dim) {#4};%
   }%
+}
+
+% Draws a stacked ingoing flow for an N-dimensional stock.
+% Draws 3 offset flows (matching the 3 stacked boxes) with clouds and
+% hourglasses.  Only the front flow carries the label and named nodes
+% (in_<name>_up, in_<name>_down, in_<name>_down_nolabel) so that
+% \sdarrow works exactly as with \flowIn.
+%
+% Usage: \ndflowIn{name}{flow label}
+\newcommand{\ndflowIn}[2] {
+% Back shadow flow (connected to _s2)
+\node [sdcloud, left=5em of #1_s2] (in_cloud_#1_s2) {};
+\draw[flow] (in_cloud_#1_s2) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(#1_s2);
+% Middle shadow flow (connected to _s1)
+\node [sdcloud, left=5em of #1_s1] (in_cloud_#1_s1) {};
+\draw[flow] (in_cloud_#1_s1) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(#1_s1);
+% Front main flow (with named nodes, same interface as \flowIn)
+\node [sdcloud, left=5em of #1] (in_cloud_#1) {};
+\draw[flow] (in_cloud_#1) to node[below=0.3cm] (in_#1_down) {{#2}}
+						node[thin, triangle, border rotated, above] (in_#1_up) {}
+						node[thin, triangle, below] (in_#1_down_nolabel) {}
+						({#1});
+}
+
+% Draws a stacked outgoing flow for an N-dimensional stock.
+% Draws 3 offset flows (matching the 3 stacked boxes) with clouds and
+% hourglasses.  Only the front flow carries the label and named nodes
+% (out_<name>_up, out_<name>_down, out_<name>_down_nolabel) so that
+% \sdarrow works exactly as with \flowOut.
+%
+% Usage: \ndflowOut{name}{flow label}
+\newcommand{\ndflowOut}[2] {
+% Back shadow flow (connected to _s2)
+\node [sdcloud, right=5em of #1_s2] (out_cloud_#1_s2) {};
+\draw[flow] (#1_s2) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(out_cloud_#1_s2);
+% Middle shadow flow (connected to _s1)
+\node [sdcloud, right=5em of #1_s1] (out_cloud_#1_s1) {};
+\draw[flow] (#1_s1) to
+						node[thin, triangle, border rotated, above] {}
+						node[thin, triangle, below] {}
+						(out_cloud_#1_s1);
+% Front main flow (with named nodes, same interface as \flowOut)
+\node [sdcloud, right=5em of #1] (out_cloud_#1) {};
+\draw[flow] ({#1}) to node[below=0.3cm] (out_#1_down) {{#2}}
+						node[thin, triangle, border rotated, above] (out_#1_up) {}
+						node[thin, triangle, below] (out_#1_down_nolabel) {}
+						(out_cloud_#1);
 }
